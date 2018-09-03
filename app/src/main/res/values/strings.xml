@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">华为HiAI</string>
+
+    <string name="scene_desc">支持识别场景的种类包括：猫、狗、雪景、阴天、沙滩、绿植、文字、舞台、焰火、食物、落日、蓝天、花卉、夜晚、自行车、旧建筑、熊猫、汽车、夜晚、落叶，平均准确率>95%、平均召回率>85%</string>
+
+    <string name="use_scene">1.辅助拍照：基于不同场景下拍照，需要不同效果偏好策略，为每一个特性场景选择最佳辅助拍摄方案。\n2.智能相册：通过场景识别，为图片添加智能分类标签，广泛应用于智能相册、图片分类管理等运用中。</string>
+    <string name="no_support_hiai">该手机暂不支持华为HiAI引擎</string>
+    <string name="mobile_environment">手机测试环境：处理器不低于kirin 970的华为手机，并且系统软件版本不低于EMUI_8.1.0。</string>
 </resources>

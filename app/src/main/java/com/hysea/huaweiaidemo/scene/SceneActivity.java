@@ -1,11 +1,10 @@
 package com.hysea.huaweiaidemo.scene;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
@@ -26,6 +25,7 @@ import com.luck.picture.lib.PictureSelector;
 import com.luck.picture.lib.config.PictureConfig;
 import com.luck.picture.lib.config.PictureMimeType;
 import com.luck.picture.lib.entity.LocalMedia;
+import com.tbruyelle.rxpermissions2.RxPermissions;
 
 import org.json.JSONObject;
 
@@ -33,6 +33,7 @@ import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import io.reactivex.functions.Consumer;
 
 /**
  * 场景识别
@@ -84,6 +85,7 @@ public class SceneActivity extends BaseActivity {
     private SceneDetector mSceneDetector;
     private Bitmap mBitmap;
     private String result = "";
+    private RxPermissions mPermissions;
 
     @SuppressLint("HandlerLeak")
     private Handler mHandler = new Handler() {
@@ -92,10 +94,12 @@ public class SceneActivity extends BaseActivity {
             super.handleMessage(msg);
             switch (msg.what) {
                 case MSG_SERVICE_CONNECTED:
+                    mIsConnected = true;
                     showToast("HiAI服务连接成功");
                     mSceneDetector = new SceneDetector(mContext);
                     break;
                 case MSG_SERVICE_DISCONNECTED:
+                    mIsConnected = false;
                     showToast("HiAI服务连接断开");
                     break;
                 case MSG_SHOW_SCENE:
@@ -119,14 +123,16 @@ public class SceneActivity extends BaseActivity {
         mSceneHandlerThread.start();
         mSceneHandler = new Handler(mSceneHandlerThread.getLooper(), mSceneHandlerThread);
         initVisionBase();
+        mPermissions = new RxPermissions(this);
     }
 
-    private void initVisionBase() {
+    protected void initVisionBase() {
         VisionBase.init(this, new ConnectionCallback() {
             @Override
             public void onServiceConnect() {
                 // 当与服务连接成功时，会调用此回调方法；
                 // 可以在这里进行detector类的初始化、标记服务连接状态等
+                Log.i(TAG, "current thread : " + Thread.currentThread().getName());
                 mHandler.sendEmptyMessage(MSG_SERVICE_CONNECTED);
             }
 
@@ -142,21 +148,58 @@ public class SceneActivity extends BaseActivity {
     /**
      * 拍照
      */
+    @SuppressLint("CheckResult")
     public void openCamera(View view) {
-        PictureSelector.create(this)
-                .openCamera(PictureMimeType.ofImage())
-                .forResult(PictureConfig.CHOOSE_REQUEST);
+        mPermissions.request(Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                .subscribe(new Consumer<Boolean>() {
+                    @Override
+                    public void accept(Boolean granted) {
+                        if (granted) {
+                            if (mIsConnected) {
+                                PictureSelector.create(SceneActivity.this)
+                                        .openCamera(PictureMimeType.ofImage())
+                                        .forResult(PictureConfig.CHOOSE_REQUEST);
+                            } else {
+                                showToast("HiAI服务连接失败，请重新尝试");
+                            }
+                        }
+                    }
+                });
+
     }
 
     /**
      * 拍照
      */
+    @SuppressLint("CheckResult")
     public void openGallery(View view) {
-        PictureSelector.create(this)
-                .openGallery(PictureMimeType.ofImage())
-                .isCamera(false)
-                .selectionMode(PictureConfig.SINGLE)
-                .forResult(PictureConfig.CHOOSE_REQUEST);
+        mPermissions.request(Manifest.permission.READ_EXTERNAL_STORAGE)
+                .subscribe(new Consumer<Boolean>() {
+                    @Override
+                    public void accept(Boolean granted) {
+                        if (granted) {
+                            if (mIsConnected) {
+                                PictureSelector.create(SceneActivity.this)
+                                        .openGallery(PictureMimeType.ofImage())
+                                        .isCamera(false)
+                                        .selectionMode(PictureConfig.SINGLE)
+                                        .forResult(PictureConfig.CHOOSE_REQUEST);
+                            } else {
+                                showToast("HiAI服务连接失败，请重新尝试");
+                            }
+                        }
+                    }
+                });
+
+
+    }
+
+    public void openSceneType(View view) {
+        tipDialog("场景类型", R.string.scene_desc);
+    }
+
+    public void openUseScene(View view) {
+        tipDialog("应用场景", R.string.use_scene);
     }
 
 
@@ -164,7 +207,6 @@ public class SceneActivity extends BaseActivity {
         public SceneHandlerThread() {
             super("SceneHandlerThread");
         }
-
 
         @Override
         public boolean handleMessage(Message msg) {
@@ -187,7 +229,7 @@ public class SceneActivity extends BaseActivity {
                     // 获取识别出来的场景类型
                     result = "result : " + getScene(scene.getType());
                     long end = System.currentTimeMillis();
-                    Log.i(TAG, "scene need time:" + (end - startTime));
+                    Log.i(TAG, "scene need time:" + (end - startTime)); // 148ms
                     mHandler.sendEmptyMessage(MSG_SHOW_SCENE);
                     break;
                 default:
@@ -218,7 +260,9 @@ public class SceneActivity extends BaseActivity {
                         Log.i(TAG, "filePath : " + filePath);
                         Glide.with(mContext).load(filePath).into(mIvShow);
                         mBitmap = BitmapFactory.decodeFile(filePath);
-                        mSceneHandler.sendEmptyMessage(MSG_SCENE);
+                        if (mIsConnected) {
+                            mSceneHandler.sendEmptyMessage(MSG_SCENE);
+                        }
                     }
                     break;
             }
@@ -228,6 +272,7 @@ public class SceneActivity extends BaseActivity {
 
     @Override
     protected void onDestroy() {
+        // 释放资源
         mSceneDetector.release();
         mHandler.removeCallbacksAndMessages(null);
         mSceneHandlerThread.quit();

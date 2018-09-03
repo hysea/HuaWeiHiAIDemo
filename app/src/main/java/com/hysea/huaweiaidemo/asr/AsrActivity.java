@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.util.Log;
+import android.view.View;
 
 import com.huawei.hiai.asr.AsrConstants;
 import com.huawei.hiai.asr.AsrError;
@@ -41,7 +42,7 @@ public class AsrActivity extends BaseActivity {
     }
 
 
-    private void openAudio() {
+    public void openAudio(View view) {
         PictureSelector.create(this)
                 .openGallery(PictureMimeType.ofAudio())
                 .selectionMode(PictureConfig.SINGLE)

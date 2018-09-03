@@ -3,10 +3,9 @@ package com.hysea.huaweiaidemo;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 
+import com.hysea.huaweiaidemo.asr.AsrActivity;
 import com.hysea.huaweiaidemo.scene.SceneActivity;
 
 /**
@@ -21,34 +20,31 @@ public class MainActivity extends BaseActivity {
 
     @Override
     protected void init() {
-
+        tipDialog("提示", R.string.mobile_environment);
     }
 
     /**
      * 场景识别
      */
     public void toScene(View view) {
-        Intent intent = new Intent(this, SceneActivity.class);
-        startActivity(intent);
-//        if (isSupportHiAI()) {
-//            Intent intent = new Intent(this, SceneActivity.class);
-//            startActivity(intent);
-//        } else {
-//            showToast("该手机暂不支持华为HiAI引擎");
-//        }
-    }
-
-
-
-    /**
-     * 场景识别
-     */
-    public void toAsr(View view) {
         if (isSupportHiAI()) {
             Intent intent = new Intent(this, SceneActivity.class);
             startActivity(intent);
         } else {
-            showToast("该手机暂不支持华为HiAI引擎");
+            showToast(R.string.no_support_hiai);
+        }
+    }
+
+
+    /**
+     * 语音识别
+     */
+    public void toAsr(View view) {
+        if (isSupportHiAI()) {
+            Intent intent = new Intent(this, AsrActivity.class);
+            startActivity(intent);
+        } else {
+            showToast(R.string.no_support_hiai);
         }
     }
 
@@ -60,13 +56,9 @@ public class MainActivity extends BaseActivity {
         PackageManager packageManager = getPackageManager();
         try {
             PackageInfo packageInfo = packageManager.getPackageInfo("com.huawei.hiai", 0);
-            Log.i(TAG, "Engine versionName: " + packageInfo.versionName + " ,versionCode: " + packageInfo.getLongVersionCode());
-            if (packageInfo.getLongVersionCode() <= 801000300) {
-                return false;
-            }
+            return packageInfo != null;
         } catch (PackageManager.NameNotFoundException e) {
             return false;
         }
-        return true;
     }
 }

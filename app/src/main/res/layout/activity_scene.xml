@@ -20,6 +20,27 @@
         android:onClick="openGallery"
         android:text="从图库选取" />
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Button
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:onClick="openSceneType"
+            android:text="场景识别类型" />
+
+        <Button
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:onClick="openUseScene"
+            android:text="应用场景" />
+
+    </LinearLayout>
+
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
@@ -27,13 +48,18 @@
         <ImageView
             android:id="@+id/iv_show"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            android:layout_margin="15dp"
+            android:scaleType="fitCenter" />
 
         <TextView
             android:id="@+id/tv_show_result"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="@color/white"
+            android:layout_centerInParent="true"
+            android:background="@drawable/shape_text_bg"
+            android:padding="5dp"
+            android:textColor="@android:color/holo_red_dark"
             android:textSize="16sp"
             android:textStyle="bold" />
     </RelativeLayout>

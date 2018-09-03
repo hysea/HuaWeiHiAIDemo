@@ -23,6 +23,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <activity
             android:name=".scene.SceneActivity"
             android:configChanges="orientation|screenSize|keyboardHidden"
@@ -31,6 +32,7 @@
             android:name=".asr.AsrActivity"
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:screenOrientation="portrait" />
+        <activity android:name=".ocr.OcrActivity" />
     </application>
 
 </manifest>
